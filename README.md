@@ -127,6 +127,35 @@ The MySQL server must accept connections from Vercel. Vercel has no fixed
 outbound IPs, so use a strong password and TLS rather than relying on an IP
 allowlist.
 
+## Developer API
+
+Workspaces can send their approved templates from their own systems.
+
+- **Keys and webhooks:** owners and admins create API keys and a webhook
+  endpoint under **Settings → API** (`/settings/api`).
+- **Reference:** the full reference is public at `/developers`.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/v1/templates` | Approved templates, their variables, and an example request |
+| `POST /api/v1/messages` | Queue one message (`to`) or up to 1,000 (`messages`); supports `Idempotency-Key` |
+| `GET /api/v1/messages/{id}` | Status of one message |
+| `GET /api/v1/messages?reference=…` / `?batch_id=…` | Look up by your own reference or by batch |
+
+- **Same send path as campaigns:** an API request becomes a send job with
+  `source = 'api'` and goes through the same queue as campaigns. That means
+  the same retries and opt-out checks, and the same handling of Meta's
+  delivery receipts.
+- **Webhook events:** `message.sent`, `message.delivered`, `message.read`,
+  `message.failed`, `message.received`, `contact.opted_out` and
+  `contact.opted_in`.
+- **Signing and retries:** events are signed with
+  `X-Piltovr-Signature: t=…,v1=HMAC_SHA256(secret, "t.body")`. Failed
+  deliveries are retried after 1 min, 5 min, 30 min, 2 h and 6 h.
+- **Limits:** 600 requests per minute per key (`API_RATE_LIMIT_PER_MINUTE`).
+- **Local testing only:** set `WEBHOOK_ALLOW_INSECURE_URLS=1` to allow
+  `http://` and private webhook URLs. Never set it in production.
+
 ## Tests
 
 ```bash

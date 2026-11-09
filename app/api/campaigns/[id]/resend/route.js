@@ -21,11 +21,12 @@ export async function POST(request, { params }) {
     const { id } = await params;
 
     const [job] = await query(
-      `SELECT id, name, status, template_id, variables_json, header_media_json
+      `SELECT id, name, status, source, template_id, variables_json, header_media_json
        FROM send_jobs WHERE id = :id AND organization_id = :organizationId`,
       { id, organizationId: session.organization_id }
     );
     if (!job) throw httpError(404, "Campaign not found.");
+    if (job.source === "api") throw httpError(409, "API messages are resent from your own system with POST /api/v1/messages.");
     if (ACTIVE_JOB_STATUSES.includes(job.status)) {
       throw httpError(409, "This campaign is still sending. Wait for it to finish before resending.");
     }

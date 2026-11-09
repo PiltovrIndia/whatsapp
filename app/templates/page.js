@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, Plus, RefreshCw, Send } from "lucide-react";
+import { Copy, MoreHorizontal, Plus, RefreshCw, Send } from "lucide-react";
 import { AppShell, StatusBadge } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api, formatDate } from "@/lib/api-client";
 import { languageLabel } from "@/lib/whatsapp-languages";
+import { curlExample, exampleRequestBody } from "@/lib/api-snippets";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+function ApiExampleDialog({ template, onClose }) {
+  const snippet = template
+    ? curlExample(typeof window === "undefined" ? "" : window.location.origin, exampleRequestBody(template))
+    : "";
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(snippet);
+      toast.success("Copied");
+    } catch {
+      toast.error("Couldn't copy. Select the text and copy it manually.");
+    }
+  }
+  return (
+    <Dialog open={Boolean(template)} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Send “{template?.name}” via API</DialogTitle>
+          <DialogDescription>
+            Replace the key with one from <Link href="/settings/api" className="underline">API &amp; webhooks</Link> and the values with real ones. Variables fill {"{{1}}"}, {"{{2}}"}… in order.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="relative">
+          <pre className="max-h-96 overflow-auto rounded-md bg-[#111] p-4 pr-12 text-xs leading-relaxed text-[#e8e8e8]"><code>{snippet}</code></pre>
+          <button type="button" onClick={copy} className="absolute right-2 top-2 rounded p-1.5 text-[#bbb] hover:bg-white/10" aria-label="Copy code"><Copy className="size-4" /></button>
+        </div>
+        <p className="text-xs text-[#777]">Full reference: <Link href="/developers" className="underline" target="_blank">API docs</Link>.</p>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const FILTERS = [
   ["all", "All"],
@@ -28,6 +61,7 @@ const REVIEW_STATUSES = ["PENDING", "IN_APPEAL"];
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [apiTemplate, setApiTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
@@ -155,6 +189,7 @@ export default function TemplatesPage() {
                       <DropdownMenuTrigger className="rounded p-1 hover:bg-[#f1f1f1]" aria-label="Template actions"><MoreHorizontal className="size-4" /></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {template.status === "APPROVED" ? <DropdownMenuItem asChild><Link href={`/send?template=${template.id}`}>Use in campaign</Link></DropdownMenuItem> : null}
+                        {template.status === "APPROVED" ? <DropdownMenuItem onClick={() => setApiTemplate(template)}>Use via API</DropdownMenuItem> : null}
                         <DropdownMenuItem onClick={() => refresh(template)}>Refresh status</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-[#b42318]" onClick={() => remove(template)}>Delete</DropdownMenuItem>
@@ -186,6 +221,7 @@ export default function TemplatesPage() {
           ))}
         </div>
       )}
+      <ApiExampleDialog template={apiTemplate} onClose={() => setApiTemplate(null)} />
     </AppShell>
   );
 }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   BarChart3,
+  Code2,
   Check,
   ChevronsUpDown,
   ContactRound,
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/contacts", label: "Contacts", icon: ContactRound },
   { href: "/templates", label: "Templates", icon: MessageSquareText },
   { href: "/campaigns", label: "Campaigns", icon: Send },
+  { href: "/settings/api", label: "API", icon: Code2 },
   { href: "/settings/whatsapp", label: "Settings", icon: Settings },
 ];
 

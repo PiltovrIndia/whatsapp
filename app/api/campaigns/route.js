@@ -34,13 +34,13 @@ export async function GET(request) {
        FROM send_jobs j
        INNER JOIN templates t ON t.id = j.template_id
        LEFT JOIN users u ON u.id = j.created_by
-       WHERE j.organization_id = :organizationId
+       WHERE j.organization_id = :organizationId AND j.source = 'campaign'
        ORDER BY j.created_at DESC
        LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
       { organizationId: session.organization_id }
     );
     const [{ total }] = await query(
-      "SELECT COUNT(*) AS total FROM send_jobs WHERE organization_id = :organizationId",
+      "SELECT COUNT(*) AS total FROM send_jobs WHERE organization_id = :organizationId AND source = 'campaign'",
       { organizationId: session.organization_id }
     );
 
