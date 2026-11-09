@@ -44,6 +44,23 @@ const ERROR_HINTS = {
   interrupted: "Sending was interrupted; not retried to avoid duplicates.",
 };
 
+// Meta's own wording is the most specific (e.g. it says whether a 131042 is
+// about tax details or the payment method), so show it first and the hint after.
+function RecipientError({ code, message }) {
+  const full = message ? String(message).replace(/\s*Visit https?:\/\/\S+.*$/s, "").trim() : "";
+  const shown = full.length > 160 ? `${full.slice(0, 157)}…` : full;
+  const hint = ERROR_HINTS[code];
+  const numeric = code && !Number.isNaN(Number(code));
+  return (
+    <>
+      {shown ? <p title={message}>{shown}</p> : null}
+      {hint && hint !== full ? <p className={shown ? "mt-1 text-[#737373]" : undefined}>{shown ? `What to do: ${hint}` : hint}</p> : null}
+      {!shown && !hint && code ? <p>{code}</p> : null}
+      {numeric ? <p className="text-[#999]">Code {code}</p> : null}
+    </>
+  );
+}
+
 function Metric({ label, value, total }) {
   return (
     <div className="rounded-md border border-[#e6e6e6] p-4">
@@ -196,8 +213,7 @@ export default function CampaignDetailPage({ params }) {
                     <TableCell className="max-w-[360px] text-xs text-[#555]">
                       {recipient.error_code || recipient.error_message ? (
                         <>
-                          <p>{ERROR_HINTS[recipient.error_code] || recipient.error_message}</p>
-                          {recipient.error_code && !Number.isNaN(Number(recipient.error_code)) ? <p className="text-[#999]">Code {recipient.error_code}</p> : null}
+                          <RecipientError code={recipient.error_code} message={recipient.error_message} />
                         </>
                       ) : recipient.attempts > 1 ? `Sent after ${recipient.attempts} attempts` : "—"}
                     </TableCell>
