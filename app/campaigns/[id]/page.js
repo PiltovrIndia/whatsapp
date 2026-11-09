@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { AppShell, StatusBadge } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,8 @@ export default function CampaignDetailPage({ params }) {
   const [data, setData] = useState(null);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [resending, setResending] = useState(false);
+  const router = useRouter();
 
   const load = useCallback(() => {
     const query = new URLSearchParams({ page: String(page), pageSize: "50" });
@@ -87,6 +90,20 @@ export default function CampaignDetailPage({ params }) {
     }
   }
 
+  async function resend() {
+    const count = data.campaign.stats.failed;
+    if (!window.confirm(`Resend to ${count} failed recipient${count === 1 ? "" : "s"}? This creates a new campaign with the same template and values. Opted-out contacts are skipped.`)) return;
+    setResending(true);
+    try {
+      const result = await api(`/api/campaigns/${id}/resend`, { method: "POST" });
+      toast.success(`Resending to ${result.recipients} recipient${result.recipients === 1 ? "" : "s"}`);
+      router.push(`/campaigns/${result.jobId}`);
+    } catch (error) {
+      toast.error(error.message);
+      setResending(false);
+    }
+  }
+
   if (!data) {
     return <AppShell title="Campaign" eyebrow="Campaigns"><p className="py-10 text-center text-sm text-[#888]">Loading…</p></AppShell>;
   }
@@ -104,6 +121,11 @@ export default function CampaignDetailPage({ params }) {
         <div className="flex gap-2">
           <Button asChild variant="ghost"><Link href="/campaigns"><ArrowLeft className="size-4" /> All campaigns</Link></Button>
           {active ? <Button variant="outline" className="text-[#b42318]" onClick={cancel}>Cancel</Button> : null}
+          {!active && stats.failed > 0 ? (
+            <Button onClick={resend} disabled={resending}>
+              <RotateCcw className="size-4" /> {resending ? "Resending…" : `Resend to ${stats.failed} failed`}
+            </Button>
+          ) : null}
         </div>
       }
     >

@@ -28,6 +28,7 @@ function describeAction(event) {
     "template.delete": "Deleted a template",
     "campaign.create": `Started a campaign to ${event.metadata?.recipients ?? "?"} contacts`,
     "campaign.cancel": "Cancelled a campaign",
+    "campaign.resend": `Resent a campaign to ${event.metadata?.recipients ?? "?"} failed recipient(s)`,
     "contacts.import": `Imported ${event.metadata?.imported ?? "?"} contacts into ${event.metadata?.list || "a list"}`,
     "contact.delete": "Deleted a contact",
     "contact.opt_out": event.metadata?.via === "keyword" ? "A contact replied STOP and was opted out" : "Opted out a contact",
