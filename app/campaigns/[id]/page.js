@@ -25,6 +25,10 @@ const FILTERS = [
 // Human-readable hints for common WhatsApp delivery errors.
 const ERROR_HINTS = {
   131026: "The number isn't on WhatsApp or can't receive this message.",
+  131031: "Your WhatsApp Business account is restricted or locked. Check WhatsApp Manager.",
+  131042: "Billing problem on your WhatsApp Business account (payment method or tax details). Fix it in Meta Business Suite → Billing, then resend.",
+  131048: "Meta limited sending because of spam reports or low quality. Slow down and check your number's quality.",
+  131053: "The header media couldn't be downloaded or is in an unsupported format.",
   131047: "More than 24 hours since the customer's last reply.",
   131049: "Meta limited marketing messages to this user to protect engagement.",
   131050: "The user stopped marketing messages from your business.",
