@@ -147,7 +147,13 @@ export function CampaignBuilder({ initialTemplateId }) {
   const [media, setMedia] = useState({ mode: "link", link: "", id: "", fileName: "" });
   const [uploading, setUploading] = useState(false);
   const [schedule, setSchedule] = useState({ mode: "now", at: "" });
-  const [estimate, setEstimate] = useState(null);
+  const [rawEstimate, setEstimate] = useState(null);
+  // Re-evaluated every 30s so a scheduled time that slips into the past disables sending.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -164,8 +170,11 @@ export function CampaignBuilder({ initialTemplateId }) {
   const mediaFormat = headerMediaFormat(components);
   const unsupported = unsupportedSendFeatures(components);
 
-  useEffect(() => {
-    // Default: names come from the contact, everything else is typed in.
+  // Reset variable rules when the template (and so its slots) changes.
+  // Default: names come from the contact, everything else is typed in.
+  const [prevSlots, setPrevSlots] = useState(slots);
+  if (slots !== prevSlots) {
+    setPrevSlots(slots);
     const next = {};
     for (const slot of slots) {
       next[slot.key] = slot.key === "body:1" && !slot.label.includes("code")
@@ -173,19 +182,17 @@ export function CampaignBuilder({ initialTemplateId }) {
         : { source: "static", value: "" };
     }
     setVariables(next);
-  }, [slots]);
+  }
 
   const audience = useMemo(() => {
     if (audienceType === "lists") return listIds.length ? { type: "lists", listIds } : null;
     if (audienceType === "contacts") return pickedContacts.length ? { type: "contacts", contactIds: pickedContacts.map((c) => c.id) } : null;
     return { type: "all" };
   }, [audienceType, listIds, pickedContacts]);
+  const estimate = audience ? rawEstimate : null;
 
   useEffect(() => {
-    if (!audience) {
-      setEstimate(null);
-      return;
-    }
+    if (!audience) return;
     const timer = setTimeout(() => {
       api("/api/campaigns/estimate", { method: "POST", body: { audience } }).then(setEstimate).catch(() => setEstimate(null));
     }, 250);
@@ -210,7 +217,7 @@ export function CampaignBuilder({ initialTemplateId }) {
     return !rule || (rule.source === "static" ? !rule.value.trim() : !rule.field || rule.field === "attr:");
   });
   const mediaReady = !mediaFormat || (media.mode === "link" ? /^https:\/\//.test(media.link) : Boolean(media.id));
-  const scheduleReady = schedule.mode === "now" || (schedule.at && new Date(schedule.at).getTime() > Date.now());
+  const scheduleReady = schedule.mode === "now" || (schedule.at && new Date(schedule.at).getTime() > now);
   const canSend = template && audience && estimate?.eligible > 0 && !missingVariable && mediaReady && scheduleReady && !unsupported.length;
 
   async function uploadMedia(file) {

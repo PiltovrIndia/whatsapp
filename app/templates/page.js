@@ -59,6 +59,8 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     // Pick up approval decisions for templates still in review.
+    // Fetch on mount: state updates happen after the request resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load().then((list) => {
       if (list.some((template) => REVIEW_STATUSES.includes(template.status))) sync({ silent: true });
     });

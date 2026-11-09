@@ -60,6 +60,8 @@ export default function WhatsAppSettingsPage() {
   useEffect(() => {
     api("/api/auth/me").then((data) => setUser(data.user)).catch(() => {});
     api("/api/audit-logs").then((data) => setEvents(data.events)).catch(() => {});
+    // Fetch on mount: state updates happen after the request resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     check();
   }, [check]);
 

@@ -35,9 +35,12 @@ function ContactDialog({ open, onOpenChange, contact, lists, onSaved }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setForm(contact
+  // Reset the form each time the dialog opens (adjusting state during render
+  // avoids an extra effect-driven render).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setForm(contact
       ? {
           firstName: contact.first_name || "",
           lastName: contact.last_name || "",
@@ -49,7 +52,7 @@ function ContactDialog({ open, onOpenChange, contact, lists, onSaved }) {
           listIds: [],
         }
       : EMPTY_FORM);
-  }, [open, contact]);
+  }
 
   const set = (patch) => setForm((current) => ({ ...current, ...patch }));
 
@@ -169,7 +172,20 @@ export function ContactsManager({ lists, onListsChanged, initialListId = "all" }
   const [dialog, setDialog] = useState({ open: false, contact: null });
   const [bulkList, setBulkList] = useState("");
 
-  useEffect(() => setListId(initialListId), [initialListId]);
+  const [prevInitialListId, setPrevInitialListId] = useState(initialListId);
+  if (initialListId !== prevInitialListId) {
+    setPrevInitialListId(initialListId);
+    setListId(initialListId);
+  }
+
+  // New filters start from page 1 with nothing selected.
+  const filterKey = `${debounced}|${listId}|${status}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(1);
+    setSelected([]);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(search), 300);
@@ -193,8 +209,9 @@ export function ContactsManager({ lists, onListsChanged, initialListId = "all" }
     }
   }, [page, debounced, listId, status]);
 
+  // Fetch whenever the query changes; state updates happen after the request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); setSelected([]); }, [debounced, listId, status]);
 
   const listNames = useMemo(() => Object.fromEntries(lists.map((list) => [list.id, list.name])), [lists]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
