@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { ArrowRight, Check, ContactRound, FileText, MessageSquareText, Send, ShieldCheck, Sparkles } from "lucide-react";
 
 const capabilities = [
@@ -14,9 +15,8 @@ export default function Home() {
       <nav className="sticky top-0 z-30 border-b border-[#e6e6e6] bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1152px] items-center justify-between px-5">
           <div className="flex items-center gap-12">
-            <Link href="/" className="flex items-center gap-2.5 font-semibold">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-[#1a1a1a] text-base font-bold text-white">e</span>
-              <span>Engage</span>
+            <Link href="/" aria-label="TxtIt home" className="flex items-center">
+              <BrandLogo height={34} priority />
             </Link>
             <div className="hidden items-center gap-7 text-sm text-[#666] md:flex">
               <a href="#product" className="hover:text-[#1a1a1a]">Product</a>
@@ -52,8 +52,8 @@ export default function Home() {
           <div className="overflow-hidden rounded-lg border border-[#dcdcdc] bg-white">
             <div className="flex h-12 items-center justify-between border-b border-[#e8e8e8] px-4">
               <div className="flex items-center gap-2">
-                <span className="flex size-6 items-center justify-center rounded-md bg-[#1a1a1a] text-[11px] font-bold text-white">e</span>
-                <span className="text-xs font-semibold">Engage</span><span className="text-xs text-[#aaa]">/</span><span className="text-xs text-[#666]">Campaign workspace</span>
+                <BrandLogo height={20} />
+                <span className="text-xs text-[#aaa]">/</span><span className="text-xs text-[#666]">Campaign workspace</span>
               </div>
               <span className="rounded-full bg-[#edf6ef] px-2.5 py-1 text-[10px] font-semibold text-[#107c41]">Live</span>
             </div>
@@ -115,12 +115,12 @@ export default function Home() {
       <section id="security" className="bg-[#1a1a1a] text-white">
         <div className="mx-auto flex max-w-[1152px] flex-col items-start justify-between gap-10 px-5 py-20 md:flex-row md:items-end">
           <div className="max-w-2xl"><MessageSquareText className="size-7" /><h2 className="mt-8 text-4xl font-medium tracking-[-.035em]">Built for serious customer communication.</h2><p className="mt-4 max-w-xl text-sm leading-6 text-white/60">Server-side credentials, consent-aware contact handling and template-first sending keep your team inside the lines.</p></div>
-          <Link href="/signup" className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-[#1a1a1a] hover:bg-[#ededed]">Try Engage <ArrowRight className="size-4" /></Link>
+          <Link href="/signup" className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-[#1a1a1a] hover:bg-[#ededed]">Try TxtIt <ArrowRight className="size-4" /></Link>
         </div>
       </section>
 
       <footer className="border-t border-[#e6e6e6] bg-white">
-        <div className="mx-auto flex max-w-[1152px] flex-col gap-4 px-5 py-10 text-xs text-[#777] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 font-semibold text-[#1a1a1a]"><span className="flex size-6 items-center justify-center rounded-md bg-[#1a1a1a] text-white">e</span> Engage</div><p>WhatsApp Cloud API operations for modern teams.</p></div>
+        <div className="mx-auto flex max-w-[1152px] flex-col gap-4 px-5 py-10 text-xs text-[#777] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><BrandLogo height={24} /><p>WhatsApp Cloud API operations for modern teams.</p></div><div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Link href="/terms" className="hover:text-[#1a1a1a]">Terms of Service</Link><Link href="/privacy" className="hover:text-[#1a1a1a]">Privacy Policy</Link><Link href="/developers" className="hover:text-[#1a1a1a]">API</Link><span>© 2026 Piltovr</span></div></div>
       </footer>
     </main>
   );

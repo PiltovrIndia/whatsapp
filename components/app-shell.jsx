@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { api } from "@/lib/api-client";
+import { BrandLogo } from "@/components/brand-logo";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: BarChart3 },
@@ -111,9 +112,8 @@ function WorkspaceMenu() {
 
 function Brand() {
   return (
-    <Link href="/dashboard" className="flex h-10 items-center gap-2.5 px-2 font-semibold">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-[#1a1a1a] text-sm font-bold text-white">e</span>
-      <span>Engage</span>
+    <Link href="/dashboard" aria-label="TxtIt dashboard" className="flex h-10 items-center px-2">
+      <BrandLogo height={30} />
     </Link>
   );
 }

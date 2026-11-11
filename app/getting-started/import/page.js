@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { ContactImporter } from "@/components/contact-importer";
 
 export default function GuidedImportPage() {
@@ -6,7 +7,7 @@ export default function GuidedImportPage() {
     <main className="min-h-screen bg-[#f7f9f7] text-[#111b21]">
       <header className="border-b border-[#dce5df] bg-white">
         <div className="mx-auto flex min-h-16 max-w-[1200px] items-center justify-between px-5">
-          <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold"><span className="flex size-8 items-center justify-center rounded-lg bg-[#075e54] text-sm font-bold text-white">e</span>Engage</Link>
+          <Link href="/dashboard" aria-label="TxtIt dashboard" className="flex items-center"><BrandLogo height={30} /></Link>
           <span className="text-xs font-medium text-[#66736b]">Workspace setup</span>
         </div>
       </header>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { useState } from "react";
 import { Building2, Mail, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,8 @@ export default function SignupPage() {
   return (
     <main className="grid min-h-screen bg-[#fafafa] text-[#1a1a1a] lg:grid-cols-[1fr_520px]">
       <section className="hidden border-r border-[#e6e6e6] bg-[#1a1a1a] px-14 py-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-white font-bold text-[#1a1a1a]">
-            e
-          </span>
-          <span className="font-semibold">Engage</span>
+        <Link href="/" aria-label="TxtIt home" className="inline-flex">
+          <BrandLogo height={40} priority />
         </Link>
         <div>
           <p className="mb-5 text-xs font-semibold uppercase tracking-[.16em] text-white/50">Built for serious messaging work</p>
@@ -91,6 +89,11 @@ export default function SignupPage() {
           {status ? <p className="mt-4 text-sm text-[#555]">{status}</p> : null}
 
           <Button className="mt-6 w-full bg-[#1a1a1a] hover:bg-black">Create workspace</Button>
+          <p className="mt-3 text-center text-xs leading-5 text-[#888]">
+            By creating a workspace, you agree to the{" "}
+            <Link href="/terms" target="_blank" className="underline underline-offset-2 hover:text-[#1a1a1a]">Terms of Service</Link> and{" "}
+            <Link href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-[#1a1a1a]">Privacy Policy</Link>.
+          </p>
           <p className="mt-5 text-center text-sm text-[#777]">
             Already have an account?{" "}
             <Link href="/login" className="font-semibold text-[#1a1a1a] underline underline-offset-4">Sign in</Link>

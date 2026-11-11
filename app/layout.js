@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Engage — WhatsApp operations, simplified",
+  title: "TxtIt — WhatsApp operations, simplified",
   description: "Onboard businesses, manage contacts and send approved WhatsApp templates from one precise workspace.",
 };
 

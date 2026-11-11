@@ -128,7 +128,7 @@ function DemoContent({ active }) {
             <div className={styles.fieldMock}>Track order <span>URL</span></div>
           </div>
           <div className={styles.phoneMock}>
-            <span className={styles.phoneTop}>Engage · Business</span>
+            <span className={styles.phoneTop}>TxtIt · Business</span>
             <div className={styles.chatBubble}><strong>Order ready</strong><p>Hi Asha, your order #1042 is ready for dispatch.</p><span>Track order</span></div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function StudioLanding() {
 
       <nav className={styles.navWrap}>
         <div className={styles.navBar}>
-          <Link href="/studio" className={styles.brand}><BrandMark /> <span>ENGAGE</span></Link>
+          <Link href="/studio" className={styles.brand}><BrandMark /> <span>TXTIT</span></Link>
           <div className={styles.navLinks}><a href="#demo">Demo</a><a href="#workflow">Workflow</a><a href="#principles">Principles</a></div>
           <div className={styles.navActions}><Link href="/login">Sign in</Link><Link href="/signup" className={styles.outlineButton}>Create workspace <ArrowRight size={14} /></Link></div>
         </div>
@@ -206,7 +206,7 @@ export default function StudioLanding() {
           <div className={styles.browserChrome}><div><i /><i /><i /></div><span>app.engage / workspace</span><span>SECURE</span></div>
           <div className={styles.productShell}>
             <aside className={styles.demoSidebar}>
-              <div className={styles.demoBrand}><BrandMark inverse /><strong>Engage</strong></div>
+              <div className={styles.demoBrand}><BrandMark inverse /><strong>TxtIt</strong></div>
               <nav>{[[MessageSquareText,"Overview"],[ShieldCheck,"Onboarding"],[ContactRound,"Contacts"],[FileCheck2,"Templates"],[Send,"Send"]].map(([Icon,label], index) => <span key={label} className={index === active + 1 || (active === 3 && index === 4) ? styles.activeSideItem : ""}><Icon size={15} />{label}</span>)}</nav>
               <div className={styles.connected}><i /> WhatsApp connected</div>
             </aside>
@@ -244,20 +244,20 @@ export default function StudioLanding() {
       </section>
 
       <section id="principles" className={styles.principlesSection}>
-        <div className={styles.principleTitle}><p>ENGAGE / FIELD NOTE 001</p><h2>Messaging work deserves<br />a proper place to happen.</h2></div>
+        <div className={styles.principleTitle}><p>TXTIT / FIELD NOTE 001</p><h2>Messaging work deserves<br />a proper place to happen.</h2></div>
         <div className={styles.principleCopy}>
           <p>Customer communication is too important to live across spreadsheets, browser tabs and copied credentials.</p>
-          <p>Engage puts the whole operation on one surface: who you can contact, what you can say, what is ready to send, and what happened next.</p>
-          <div className={styles.signature}><BrandMark /><span>Built for teams who care about the details.<small>ENGAGE PRODUCT STUDIO · 2026</small></span></div>
+          <p>TxtIt puts the whole operation on one surface: who you can contact, what you can say, what is ready to send, and what happened next.</p>
+          <div className={styles.signature}><BrandMark /><span>Built for teams who care about the details.<small>TXTIT PRODUCT STUDIO · 2026</small></span></div>
         </div>
         <div className={styles.principleStamp}><Sparkles size={20} /><span>ONE PLACE.<br />EVERY MESSAGE.</span></div>
       </section>
 
       <footer className={styles.footer}>
-        <div><BrandMark /><strong>ENGAGE</strong><span>WhatsApp operations, beautifully organized.</span></div>
+        <div><BrandMark /><strong>TXTIT</strong><span>WhatsApp operations, beautifully organized.</span></div>
         <nav><Link href="/login">Sign in</Link><Link href="/signup">Create workspace</Link><a href="#demo">Watch demo</a></nav>
         <Link href="/signup" className={styles.footerCta}>Start now <ChevronRight size={18} /></Link>
-        <p>© 2026 Engage. Built for modern messaging teams.</p>
+        <p>© 2026 TxtIt. Built for modern messaging teams.</p>
       </footer>
     </main>
   );

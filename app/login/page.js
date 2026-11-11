@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -37,11 +38,8 @@ function LoginForm() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#fafafa] px-5 text-[#1a1a1a]">
       <form onSubmit={submit} className="w-full max-w-sm rounded-xl border border-[#e3e3e3] bg-white p-7 shadow-[0_18px_50px_rgba(0,0,0,.06)]">
-        <Link href="/" className="mb-8 flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-[#1a1a1a] font-bold text-white">
-            e
-          </span>
-          <span className="font-semibold">Engage</span>
+        <Link href="/" aria-label="TxtIt home" className="mb-8 inline-flex">
+          <BrandLogo height={36} priority />
         </Link>
         <h1 className="text-2xl font-semibold tracking-[-.025em]">Welcome back</h1>
         <p className="mt-2 text-sm text-[#777]">Continue to your messaging workspace.</p>
