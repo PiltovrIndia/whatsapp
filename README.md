@@ -45,11 +45,11 @@ npm run dev:https
 
 Add the resulting HTTPS origin to the allowed domains and OAuth redirect settings for your Meta app and Embedded Signup configuration. A publicly trusted HTTPS development URL is preferable to a self-signed localhost certificate for end-to-end Meta testing.
 
-## Platform-managed WhatsApp connection
+## WhatsApp numbers: own number first, shared number as fallback
 
-The customer workflow can use one server-managed WhatsApp connection so new
-workspaces begin with contact import instead of Embedded Signup. Configure all
-three required values in `.env.local`:
+Each workspace sends from **its own WhatsApp number** once an owner or admin
+connects one with Meta's Embedded Signup (Settings → WhatsApp). Until then it
+sends from the **shared platform number**, if one is configured:
 
 ```bash
 PLATFORM_WHATSAPP_ACCESS_TOKEN=your-long-lived-system-user-token
@@ -58,10 +58,45 @@ PLATFORM_WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
 PLATFORM_WHATSAPP_DISPLAY_PHONE_NUMBER=optional-display-number
 ```
 
-These values are server-only. When configured, they take precedence over legacy
-organization-specific connection rows. Leaving all three unset preserves the
-legacy database-backed behavior; setting only some of them returns a safe
-service-unavailable response until the configuration is completed.
+Setting only some of these returns a safe service-unavailable response until
+the configuration is complete. On the shared number, template names get a
+per-workspace `eng_<hash>_` prefix so workspaces can't see each other's.
+
+### Embedded Signup
+
+Needs `NEXT_PUBLIC_META_APP_ID` (same as `META_APP_ID`), `META_APP_SECRET`
+and `NEXT_PUBLIC_META_CONFIG_ID`, the ID of a Facebook Login for Business
+configuration of type "WhatsApp Embedded Signup" with a System-user token,
+WhatsApp accounts as assets, and the `whatsapp_business_management` and
+`whatsapp_business_messaging` permissions. Add each site origin (e.g.
+`https://www.txtit.in`) to the allowed JavaScript SDK domains.
+
+Two ways to connect:
+
+- **New number** (`cloud`): the customer verifies a number that isn't on
+  WhatsApp yet. We register it for Cloud API with a random 6-digit PIN, stored
+  encrypted.
+- **WhatsApp Business app number** (`coexistence`): the customer keeps using
+  the app on their phone. The number is already registered, so we don't call
+  `/register`. Throughput is capped at about 20 messages per second and the
+  app must be opened at least every 14 days.
+
+When the popup finishes, `POST /api/whatsapp/onboarding/exchange` exchanges
+the code for a business-integration token, checks with `debug_token` that the
+token really grants the reported WABA, rejects the shared number or a number
+another workspace owns, subscribes our app to the WABA's webhooks, registers
+the number (cloud only), saves the connection and syncs its templates.
+`DELETE /api/whatsapp/connection` (owner only) unsubscribes and removes the
+connection; the number stays the customer's and the workspace falls back to
+the shared number.
+
+**Templates belong to a WABA.** A workspace only sees and sends the templates
+of the account it currently sends from. Queued messages whose template is on
+another account fail with `template_wrong_account`.
+
+**Billing.** Meta bills each customer's WABA directly, so they must add a
+payment method in Meta. Settings shows Meta's `health_status` problems, such
+as a missing payment method.
 
 ## How messaging works
 

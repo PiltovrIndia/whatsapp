@@ -3,8 +3,8 @@ import { requireSession } from "@/lib/server/auth";
 import { parseJson, query } from "@/lib/server/db";
 import { ACTIVE_JOB_STATUSES, createCampaign } from "@/lib/server/send-queue";
 import { drainSendQueue } from "@/lib/server/queue-trigger";
-import { getTemplate } from "@/lib/server/templates";
-import { resolveWhatsAppConnection } from "@/lib/server/whatsapp";
+import { getTemplate, TEMPLATE_WRONG_ACCOUNT } from "@/lib/server/templates";
+import { activeWabaId, resolveWhatsAppConnection } from "@/lib/server/whatsapp";
 import { handleApiError, httpError, jsonOk } from "@/lib/server/http";
 import { audit } from "@/lib/server/audit";
 
@@ -42,6 +42,9 @@ export async function POST(request, { params }) {
     if (!template || template.status === "DELETED") throw httpError(409, "This campaign's template was deleted.");
     if (template.status !== "APPROVED") {
       throw httpError(409, `This campaign's template is now ${template.status.toLowerCase()}. Only approved templates can be sent.`);
+    }
+    if (template.waba_id !== await activeWabaId(session.organization_id)) {
+      throw httpError(409, `${TEMPLATE_WRONG_ACCOUNT} Start a new campaign with one of the current number's templates.`);
     }
 
     // Fail fast if messaging is not configured, before queueing anything.

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, LogOut, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ExternalLink, LogOut, MessageCircle, Plus, RefreshCw, Smartphone, Unplug } from "lucide-react";
+import { EmbeddedSignupButton } from "@/components/embedded-signup-button";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,10 +36,57 @@ function describeAction(event) {
     "contact.opt_in": event.metadata?.via === "keyword" ? "A contact replied START and was opted in" : "Opted in a contact",
     "contact_list.delete": "Deleted a list",
     "whatsapp.webhook_subscribe": "Subscribed webhooks",
+    "whatsapp.connect": `Connected WhatsApp number ${event.metadata?.displayPhoneNumber || ""}`,
+    "whatsapp.disconnect": `Disconnected WhatsApp number ${event.metadata?.displayPhoneNumber || ""}`,
   };
   if (labels[event.action]) return labels[event.action];
   if (event.action.startsWith("contacts.bulk.")) return `Bulk ${event.action.slice(14)} on ${event.metadata?.count ?? "?"} contacts`;
   return event.action;
+}
+
+const NEEDS = [
+  "A Facebook account (you'll log in to Meta in a popup)",
+  "Your business name, website and address",
+  "A phone number that can receive an SMS or call, and isn't on WhatsApp already (for a new number)",
+  "A payment method for Meta's message charges, added in Meta afterwards",
+];
+
+function ConnectOptions({ status, canManage, onConnected }) {
+  if (!canManage) {
+    return <p className="text-sm text-[#666]">Ask a workspace owner or admin to connect your business&apos;s WhatsApp number.</p>;
+  }
+  if (!status.signup?.configured) {
+    return (
+      <p className="rounded-lg bg-[#fffaf0] p-3 text-sm text-[#7a5200]">
+        Connecting your own number isn&apos;t available yet: Embedded Signup isn&apos;t configured on this server
+        (<code>NEXT_PUBLIC_META_APP_ID</code> and <code>NEXT_PUBLIC_META_CONFIG_ID</code>).
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col rounded-lg border border-[#e6e6e6] p-4">
+          <Plus className="size-5 text-[#107c41]" />
+          <p className="mt-2 text-sm font-semibold">Use a new number</p>
+          <p className="mt-1 flex-1 text-xs leading-5 text-[#666]">A number that isn&apos;t on WhatsApp yet. You&apos;ll verify it by SMS or call. Sending only through TxtIt and the API.</p>
+          <EmbeddedSignupButton onboardingType="cloud" onConnected={onConnected} className="mt-3 bg-[#1a1a1a] hover:bg-black">Connect new number</EmbeddedSignupButton>
+        </div>
+        <div className="flex flex-col rounded-lg border border-[#e6e6e6] p-4">
+          <Smartphone className="size-5 text-[#107c41]" />
+          <p className="mt-2 text-sm font-semibold">Use my WhatsApp Business app number</p>
+          <p className="mt-1 flex-1 text-xs leading-5 text-[#666]">Keep chatting in the WhatsApp Business app on your phone while TxtIt sends templates from the same number.</p>
+          <EmbeddedSignupButton onboardingType="coexistence" onConnected={onConnected} variant="outline" className="mt-3">Connect app number</EmbeddedSignupButton>
+        </div>
+      </div>
+      <div className="rounded-lg bg-[#fafafa] p-3">
+        <p className="text-xs font-semibold text-[#444]">What you&apos;ll need</p>
+        <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs leading-5 text-[#666]">
+          {NEEDS.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 export default function WhatsAppSettingsPage() {
@@ -76,12 +124,31 @@ export default function WhatsAppSettingsPage() {
     }
   }
 
+  async function disconnect() {
+    const number = status?.displayPhoneNumber || "this number";
+    if (!window.confirm(`Disconnect ${number}? The number stays yours in Meta, but this workspace will stop sending from it${status?.signup?.platformAvailable ? " and go back to the shared TxtIt number" : ""}. Messages already queued for it will fail.`)) return;
+    try {
+      await api("/api/whatsapp/connection", { method: "DELETE" });
+      toast.success("Number disconnected");
+      check();
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  function connected() {
+    check();
+    api("/api/audit-logs").then((data) => setEvents(data.events)).catch(() => {});
+  }
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/";
   }
 
   const canManage = ["owner", "admin"].includes(user?.role);
+  const isOwn = status?.mode === "organization";
+  const onShared = status?.mode === "platform";
 
   return (
     <AppShell
@@ -90,6 +157,20 @@ export default function WhatsAppSettingsPage() {
       action={<Button variant="outline" onClick={check} disabled={checking}><RefreshCw className={`size-4 ${checking ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Re-check</span></Button>}
     >
       <div className="grid gap-5 lg:grid-cols-2">
+        {status && !isOwn ? (
+          <Card className="rounded-lg border-[#1a1a1a] shadow-none lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><MessageCircle className="size-5 text-[#107c41]" /> Connect your own WhatsApp number</CardTitle>
+              <p className="text-sm text-[#666]">
+                {onShared
+                  ? "You're sending from the shared TxtIt number, so customers see TxtIt instead of your business. Connect your own number to send under your business name, with your own templates and limits."
+                  : "Connect your business's WhatsApp number to start sending."}
+                {" "}It takes about five minutes in a Meta popup. Meta bills message charges directly to your WhatsApp account.
+              </p>
+            </CardHeader>
+            <CardContent><ConnectOptions status={status} canManage={canManage} onConnected={connected} /></CardContent>
+          </Card>
+        ) : null}
         <Card className="rounded-lg border-[#e6e6e6] shadow-none">
           <CardHeader><CardTitle>WhatsApp connection</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -116,13 +197,25 @@ export default function WhatsAppSettingsPage() {
                 </div>
                 {status.mode ? (
                   <div>
-                    <Row label="Connection">{status.mode === "platform" ? "Managed by platform" : "Workspace account"}</Row>
+                    <Row label="Connection">{onShared ? "Shared TxtIt number" : status.account?.onboardingType === "coexistence" ? "Your number (WhatsApp Business app + TxtIt)" : "Your number"}</Row>
+                    {isOwn ? <Row label="WhatsApp account">{status.account?.wabaName}</Row> : null}
                     <Row label="Phone number">{status.displayPhoneNumber}</Row>
                     <Row label="Display name">{status.verifiedName}</Row>
                     <Row label="Quality rating">{status.qualityRating ? QUALITY[status.qualityRating] || status.qualityRating : null}</Row>
                     <Row label="Messaging limit">{status.messagingLimitTier?.replace("TIER_", "").replace("UNLIMITED", "Unlimited")}{status.messagingLimitTier && status.messagingLimitTier !== "TIER_UNLIMITED" ? " customers / 24h" : ""}</Row>
                     <Row label="Webhooks">{status.webhook ? (status.webhook.subscribed ? "Subscribed" : "Not subscribed") : null}</Row>
                     <Row label="Last webhook event">{status.lastWebhookAt ? formatDate(status.lastWebhookAt) : "None received yet"}</Row>
+                    {isOwn ? <Row label="Connected">{status.account?.connectedAt ? formatDate(status.account.connectedAt) : null}</Row> : null}
+                  </div>
+                ) : null}
+                {isOwn && status.account?.healthProblems?.length ? (
+                  <a href="https://business.facebook.com/billing_hub/accounts" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1a1a1a] underline underline-offset-4">
+                    Open Meta billing &amp; payments <ExternalLink className="size-3.5" />
+                  </a>
+                ) : null}
+                {isOwn && user?.role === "owner" ? (
+                  <div className="border-t border-[#f0f0f0] pt-4">
+                    <Button variant="outline" onClick={disconnect} className="text-[#b42318] hover:text-[#b42318]"><Unplug className="size-4" /> Disconnect number</Button>
                   </div>
                 ) : null}
                 {canManage && status.mode === "organization" && status.webhook && !status.webhook.subscribed ? (

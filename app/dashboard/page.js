@@ -49,6 +49,7 @@ export default async function DashboardPage() {
 
   const checklist = [
     { label: "Workspace created", done: true, href: null },
+    { label: "Connect your WhatsApp number", done: data.ownNumberConnected, href: "/settings/whatsapp" },
     { label: "Import opted-in contacts", done: data.contacts.optedIn > 0, href: "/contacts?tab=import" },
     { label: "Get a template approved by WhatsApp", done: data.templates.approved > 0, href: "/templates/new" },
     { label: "Send your first campaign", done: data.campaigns > 0, href: "/send" },
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
         {nextStep ? (
           <Card className="rounded-lg border-[#e6e6e6] shadow-none">
             <CardHeader><CardTitle>Get set up</CardTitle></CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-4">
+            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {checklist.map((item) => {
                 const body = (
                   <div className={`flex h-full items-start gap-3 rounded-md border p-4 ${item === nextStep ? "border-[#1a1a1a]" : "border-[#e6e6e6]"}`}>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseJson, query } from "@/lib/server/db";
 import { withApiKey } from "@/lib/server/api-keys";
+import { activeWabaId } from "@/lib/server/whatsapp";
 import { displayTemplateName } from "@/lib/server/whatsapp-config";
 import { headerMediaFormat, templateVariableSlots, unsupportedSendFeatures } from "@/lib/message-payload";
 import { describeApiVariables } from "@/lib/api-utils";
@@ -11,9 +12,10 @@ export const dynamic = "force-dynamic";
 export const GET = withApiKey(async (request, context, apiSession) => {
   const rows = await query(
     `SELECT id, name, language, category, components_json, updated_at
-     FROM templates WHERE organization_id = :organizationId AND status = 'APPROVED'
+     FROM templates
+     WHERE organization_id = :organizationId AND waba_id <=> :wabaId AND status = 'APPROVED'
      ORDER BY name, language`,
-    { organizationId: apiSession.organization_id }
+    { organizationId: apiSession.organization_id, wabaId: await activeWabaId(apiSession.organization_id) }
   );
 
   const data = rows.map((row) => {

@@ -5,6 +5,7 @@ import { campaignSchema } from "@/lib/server/validators";
 import { createCampaign } from "@/lib/server/send-queue";
 import { drainSendQueue, nudgeSendQueue } from "@/lib/server/queue-trigger";
 import { getTemplate } from "@/lib/server/templates";
+import { activeWabaId } from "@/lib/server/whatsapp";
 import { resolveWhatsAppConnection } from "@/lib/server/whatsapp";
 import { displayTemplateName } from "@/lib/server/whatsapp-config";
 import {
@@ -62,7 +63,9 @@ export async function POST(request) {
     const session = await requireSession();
     const payload = campaignSchema.parse(await request.json());
 
-    const template = await getTemplate(session.organization_id, payload.templateId);
+    const template = await getTemplate(session.organization_id, payload.templateId, {
+      wabaId: await activeWabaId(session.organization_id),
+    });
     if (!template || template.status === "DELETED") throw httpError(404, "Template not found.");
     if (template.status !== "APPROVED") {
       throw httpError(409, `This template is ${template.status.toLowerCase()}. Only approved templates can be sent.`);

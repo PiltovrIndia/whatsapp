@@ -22,6 +22,11 @@ const connection = await mysql.createConnection({
   timezone: "Z",
 });
 
+// Migrations that backfill platform-owned rows read this session variable.
+await connection.query("SET @platform_waba_id = ?", [
+  String(process.env.PLATFORM_WHATSAPP_WABA_ID || "").trim() || null,
+]);
+
 await connection.query(`
   CREATE TABLE IF NOT EXISTS schema_migrations (
     name VARCHAR(255) PRIMARY KEY,

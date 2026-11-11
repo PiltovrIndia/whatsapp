@@ -111,6 +111,16 @@ if (appReady) {
   }
 }
 
+section("Embedded Signup");
+if (!isSet("NEXT_PUBLIC_META_APP_ID") || !isSet("NEXT_PUBLIC_META_CONFIG_ID")) {
+  warn("NEXT_PUBLIC_META_APP_ID or NEXT_PUBLIC_META_CONFIG_ID is missing, so workspaces can't connect their own number.");
+} else {
+  if (env.NEXT_PUBLIC_META_APP_ID !== env.META_APP_ID) fail("NEXT_PUBLIC_META_APP_ID must equal META_APP_ID.");
+  else ok("NEXT_PUBLIC_META_APP_ID matches META_APP_ID");
+  if (!/^\d+$/.test(env.NEXT_PUBLIC_META_CONFIG_ID)) fail("NEXT_PUBLIC_META_CONFIG_ID should be the numeric Facebook Login for Business configuration ID.");
+  else ok("NEXT_PUBLIC_META_CONFIG_ID is set (Facebook Login for Business configuration)");
+}
+
 section("WhatsApp connection");
 const platformKeys = ["PLATFORM_WHATSAPP_ACCESS_TOKEN", "PLATFORM_WHATSAPP_WABA_ID", "PLATFORM_WHATSAPP_PHONE_NUMBER_ID"];
 const platformSet = platformKeys.filter(isSet);

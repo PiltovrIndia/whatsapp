@@ -2,7 +2,7 @@ import { requireSession } from "@/lib/server/auth";
 import { query, withTransaction } from "@/lib/server/db";
 import { templateSchema } from "@/lib/server/validators";
 import { buildTemplatePayload, validateTemplateInput } from "@/lib/template-payload";
-import { createMetaTemplate, resolveWhatsAppConnection } from "@/lib/server/whatsapp";
+import { activeWabaId, createMetaTemplate, resolveWhatsAppConnection } from "@/lib/server/whatsapp";
 import { managedTemplateName } from "@/lib/server/whatsapp-config";
 import { saveTemplateRecord, serializeTemplate } from "@/lib/server/templates";
 import { handleApiError, httpError, jsonOk } from "@/lib/server/http";
@@ -12,14 +12,16 @@ export async function GET(request) {
   try {
     const session = await requireSession();
     const status = new URL(request.url).searchParams.get("status");
+    const wabaId = await activeWabaId(session.organization_id);
     const templates = await query(
       `SELECT * FROM templates
        WHERE organization_id = :organizationId
+         AND waba_id <=> :wabaId
          AND status <> 'DELETED'
          ${status ? "AND status = :status" : ""}
        ORDER BY updated_at DESC
        LIMIT 500`,
-      { organizationId: session.organization_id, status }
+      { organizationId: session.organization_id, wabaId, status }
     );
 
     return jsonOk({ templates: templates.map((template) => serializeTemplate(session.organization_id, template)) });
@@ -42,8 +44,9 @@ export async function POST(request) {
 
     const [existing] = await query(
       `SELECT id FROM templates
-       WHERE organization_id = :organizationId AND name = :name AND language = :language AND status <> 'DELETED'`,
-      { organizationId: session.organization_id, name: storedName, language: payload.language }
+       WHERE organization_id = :organizationId AND waba_id <=> :wabaId
+         AND name = :name AND language = :language AND status <> 'DELETED'`,
+      { organizationId: session.organization_id, wabaId: connection.wabaId, name: storedName, language: payload.language }
     );
     if (existing) {
       throw httpError(409, `A template named "${payload.name}" already exists in ${payload.language}. Choose another name.`);
@@ -60,6 +63,7 @@ export async function POST(request) {
     const templateId = await withTransaction((db) =>
       saveTemplateRecord(db, {
         organizationId: session.organization_id,
+        wabaId: connection.wabaId,
         metaTemplateId: metaResponse?.id,
         name: storedName,
         language: payload.language,

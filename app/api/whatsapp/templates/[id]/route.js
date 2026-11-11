@@ -1,6 +1,6 @@
 import { requireRole, requireSession } from "@/lib/server/auth";
 import { query } from "@/lib/server/db";
-import { deleteMetaTemplate, getMetaTemplate, resolveWhatsAppConnection } from "@/lib/server/whatsapp";
+import { activeWabaId, deleteMetaTemplate, getMetaTemplate, resolveWhatsAppConnection } from "@/lib/server/whatsapp";
 import { getTemplate, saveTemplateRecord, serializeTemplate } from "@/lib/server/templates";
 import { withTransaction } from "@/lib/server/db";
 import { handleApiError, httpError, jsonOk } from "@/lib/server/http";
@@ -10,7 +10,8 @@ export async function GET(request, { params }) {
   try {
     const session = await requireSession();
     const { id } = await params;
-    let template = await getTemplate(session.organization_id, id);
+    const wabaId = await activeWabaId(session.organization_id);
+    let template = await getTemplate(session.organization_id, id, { wabaId });
     if (!template) throw httpError(404, "Template not found.");
 
     // Refresh review status on demand so senders see approvals without waiting for a sync.
@@ -19,6 +20,7 @@ export async function GET(request, { params }) {
       const remote = await getMetaTemplate({ templateId: template.meta_template_id, token: connection.accessToken });
       await withTransaction((db) => saveTemplateRecord(db, {
         organizationId: session.organization_id,
+        wabaId: template.waba_id,
         metaTemplateId: remote.id,
         name: remote.name,
         language: remote.language,
@@ -27,7 +29,7 @@ export async function GET(request, { params }) {
         rejectedReason: remote.rejected_reason,
         components: remote.components || [],
       }));
-      template = await getTemplate(session.organization_id, id);
+      template = await getTemplate(session.organization_id, id, { wabaId });
     }
 
     return jsonOk({ template: serializeTemplate(session.organization_id, template) });
@@ -41,7 +43,7 @@ export async function DELETE(request, { params }) {
     const session = await requireSession();
     requireRole(session, ["owner", "admin"]);
     const { id } = await params;
-    const template = await getTemplate(session.organization_id, id);
+    const template = await getTemplate(session.organization_id, id, { wabaId: await activeWabaId(session.organization_id) });
     if (!template) throw httpError(404, "Template not found.");
 
     if (template.meta_template_id) {
